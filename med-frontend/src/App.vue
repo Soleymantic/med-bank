@@ -1,7 +1,10 @@
 <template>
   <div id="app">
     <med-nav></med-nav>
-    <med-search title="Search for any Drug" subtitle="All content is official, up-to-date and approved for use"></med-search>
+    <med-search
+      title="Search for any Drug"
+      subtitle="All content is official, up-to-date and approved for use"
+    ></med-search>
   </div>
 </template>
 

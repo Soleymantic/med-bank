@@ -4,7 +4,7 @@
       <a class="navbar-brand" href="#"
         ><font-awesome-icon
           size="lg"
-          :style="{ color: 'white' }"
+          :style="{ color: 'red' }"
           beat
           icon="fa-solid fa-heartbeat"
       /></a>

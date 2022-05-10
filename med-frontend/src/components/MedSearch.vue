@@ -15,6 +15,7 @@
           />
           <input
             placeholder="Name"
+            @keyup.enter="search"
             v-model="nameInput"
             class="search-input"
             type="text"
@@ -31,6 +32,7 @@
           <input
             placeholder="Company"
             v-model="companyInput"
+            @keyup.enter="search"
             class="search-input"
             type="text"
           />
@@ -46,20 +48,26 @@
           <input
             placeholder="Date"
             v-model="dateInput"
+            @keyup.enter="search"
             class="search-input"
             type="text"
           />
         </li>
         <li class="list-group-item search-btn">
-          <button class="btn med-btn btn-success">Search</button>
+          <button @click="search" class="btn med-btn btn-success">
+            Search
+          </button>
         </li>
       </ul>
     </div>
+    <med-table v-if="showTable"></med-table>
   </div>
 </template>
 
 <script>
+import MedTable from "./MedTable.vue";
 export default {
+  components: { MedTable },
   name: "MedSearch",
   props: {
     title: String,
@@ -70,6 +78,7 @@ export default {
       nameInput: undefined,
       companyInput: undefined,
       dateInput: undefined,
+      showTable: false,
     };
   },
   computed: {
@@ -108,6 +117,13 @@ export default {
         backgroundColor: "rgb(238, 237, 236)",
         color: "#b5aeae",
       };
+    },
+  },
+  methods: {
+    search() {
+      if (this.companyInput && this.companyInput.length > 0)
+        this.showTable = true;
+      else this.showTable = false;
     },
   },
 };
