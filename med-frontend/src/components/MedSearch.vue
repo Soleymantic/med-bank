@@ -15,7 +15,7 @@
             icon="fa-solid fa-pills"
           />
           <input
-            placeholder="Brandname of drug"
+            placeholder="Name of drug"
             @keyup.enter="search"
             v-model="nameInput"
             class="search-input"
@@ -33,22 +33,6 @@
           <input
             placeholder="Manufacturer of drug"
             v-model="companyInput"
-            @keyup.enter="search"
-            class="search-input"
-            type="text"
-          />
-        </li>
-        <li class="list-group-item">
-          <font-awesome-icon
-            size="lg"
-            :style="inputStyleDate"
-            class="p-2"
-            border
-            icon="fa-solid fa-calendar"
-          />
-          <input
-            placeholder="Last updated year"
-            v-model="dateInput"
             @keyup.enter="search"
             class="search-input"
             type="text"
@@ -102,7 +86,6 @@ export default {
     return {
       nameInput: undefined,
       companyInput: undefined,
-      dateInput: undefined,
       showTable: false,
       drugs: [],
       error: undefined,
@@ -135,105 +118,54 @@ export default {
         color: "#b5aeae",
       };
     },
-    inputStyleDate() {
-      if (this.dateInput && this.dateInput.length > 0) {
-        return {
-          backgroundColor: "rgb(232, 218, 231)",
-          color: "#7500a7",
-        };
-      }
-      return {
-        backgroundColor: "rgb(238, 237, 236)",
-        color: "#b5aeae",
-      };
-    },
   },
   methods: {
+    apiUrl(name, company) {
+      let baseUrl = "https://api.fda.gov/drug/label.json?limit=100&search=";
+      let queries = [];
+
+      if (name && name.length > 0) {
+        queries.push(
+          'openfda.brand_name:"' +
+            name.toUpperCase() +
+            '"+openfda.substance_name:"' +
+            name.toUpperCase() +
+            '"'
+        );
+      }
+
+      if (company && company.length > 0) {
+        queries.push(
+          'openfda.manufacturer_name:"' + company.toUpperCase() + '"'
+        );
+      }
+
+      baseUrl = baseUrl.concat(queries.join("+AND+"));
+      return baseUrl;
+    },
     search() {
+      console.log("start");
       this.error = undefined;
       this.showTable = false;
       this.loading = true;
-      if (this.nameInput && this.nameInput.length > 0) {
-        this.$http
-          .get(
-            'https://api.fda.gov/drug/label.json?limit=100&search=openfda.brand_name:"' +
-              this.nameInput.toUpperCase() +
-              '"'
-          )
-          .then(
-            (response) => {
-              this.drugs = response.body.results;
-              if (this.companyInput && this.companyInput.length > 0) {
-                this.drugs = this.drugs.filter(
-                  (drug) =>
-                    drug.openfda.manufacturer_name.filter(
-                      (manu) =>
-                        manu
-                          .toLowerCase()
-                          .indexOf(this.companyInput.toLowerCase()) >= 0
-                    ).length > 0
-                );
-              }
 
-              if (this.dateInput && this.dateInput.length > 0) {
-                this.drugs = this.drugs.filter(
-                  (drug) =>
-                    drug.effective_time.substring(0, 4) == this.dateInput
-                );
-              }
-              this.showTable = true;
-              this.loading = false;
-            },
-            (response) => {
-              this.error = response.body.error.message;
-              this.showTable = true;
-              this.loading = false;
-            }
-          );
-      } else if (this.companyInput && this.companyInput.length > 0) {
-        this.$http
-          .get(
-            'https://api.fda.gov/drug/label.json?limit=100&search=openfda.manufacturer_name:"' +
-              this.companyInput.toUpperCase() +
-              '"'
-          )
-          .then(
-            (response) => {
-              this.drugs = response.body.results;
-              if (this.dateInput && this.dateInput.length > 0) {
-                this.drugs = this.drugs.filter(
-                  (drug) =>
-                    drug.effective_time.substring(0, 4) == this.dateInput
-                );
-              }
-              this.showTable = true;
-              this.loading = false;
-            },
-            (response) => {
-              this.error = response.body.error.message;
-              this.showTable = true;
-              this.loading = false;
-            }
-          );
-      } else if (this.dateInput && this.dateInput.length > 0) {
-        this.$http
-          .get(
-            'https://api.fda.gov/drug/label.json?limit=100&search=effective_time:"' +
-              this.dateInput.toUpperCase() +
-              '"'
-          )
-          .then(
-            (response) => {
-              this.drugs = response.body.results;
-              this.showTable = true;
-              this.loading = false;
-            },
-            (response) => {
-              this.error = response.body.error.message;
-              this.showTable = true;
-              this.loading = false;
-            }
-          );
+      if (
+        (this.nameInput && this.nameInput.length > 0) ||
+        (this.companyInput && this.companyInput.length > 0)
+      ) {
+        let url = this.apiUrl(this.nameInput, this.companyInput);
+        this.$http.get(url).then(
+          (response) => {
+            this.drugs = response.body.results;
+            this.showTable = true;
+            this.loading = false;
+          },
+          (response) => {
+            this.error = response.body.error.message;
+            this.showTable = true;
+            this.loading = false;
+          }
+        );
       } else {
         this.showTable = false;
         this.loading = false;

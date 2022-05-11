@@ -44,16 +44,16 @@
       />
       <label for="floatingStartdate">Listing Expiration Date</label>
     </div>
-    <div class="form-floating">
+    <div class="form-floating mb-3">
       <input
         v-if="selectedDrug"
-        :value="mapIngredients(selectedDrug.details.active_ingredients)"
+        :value="mapSubstance(selectedDrug.substance)"
         type="text"
         class="form-control"
-        id="floatingIngredients"
+        id="floatingSubstance"
         readonly
       />
-      <label for="floatingIngredients">Active Ingredients</label>
+      <label for="floatingSubstance">Substance</label>
     </div>
   </div>
 </template>
@@ -73,6 +73,13 @@ export default {
     };
   },
   methods: {
+    mapSubstance(substance) {
+      console.log('df"');
+      if (substance) {
+        return substance;
+      }
+      return "-";
+    },
     dateFormatter(date) {
       if (date != undefined) {
         let year = date.substring(0, 4);

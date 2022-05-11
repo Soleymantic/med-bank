@@ -82,7 +82,7 @@ export default {
         drug.date = this.dateFormatter(elem.effective_time);
         drug.route = elem.openfda.route[0];
         drug.packageNdc = elem.openfda.package_ndc[0];
-        drug.substance = elem.substance_name;
+        drug.substance = elem.openfda.substance_name[0];
         this.drugs.push(drug);
       }
     });
@@ -106,6 +106,7 @@ export default {
       this.selectedDrugDetail = undefined;
     },
     selectDrug(drug) {
+      console.log("dfs");
       this.$http
         .get("https://api.fda.gov/drug/ndc.json?search=product_ndc:" + drug.id)
         .then((response) => {
