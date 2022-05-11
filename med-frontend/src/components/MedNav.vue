@@ -22,7 +22,7 @@
       <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
         <div class="navbar-nav">
           <a class="nav-link active" aria-current="page" href="#">MedBank</a>
-          <a class="nav-link" href="#">Apotheken</a>
+          <a class="nav-link" href="#">Pharmacy</a>
         </div>
       </div>
     </div>

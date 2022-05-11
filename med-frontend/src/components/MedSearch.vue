@@ -1,7 +1,8 @@
 <template>
   <div class="med-search container">
-    <h1 class="page-title">{{ title }}</h1>
-    <p class="page-sub-title">{{ subtitle }}</p>
+    <div class="logo-wrapper">
+      <img class="logo" src="../assets/medbank.png" alt="logo" />
+    </div>
 
     <div class="search-card card rounded">
       <ul class="list-group list-group-flush">
@@ -14,7 +15,7 @@
             icon="fa-solid fa-pills"
           />
           <input
-            placeholder="Name"
+            placeholder="Brandname of drug"
             @keyup.enter="search"
             v-model="nameInput"
             class="search-input"
@@ -30,7 +31,7 @@
             icon="fa-solid fa-suitcase"
           />
           <input
-            placeholder="Company"
+            placeholder="Manufacturer of drug"
             v-model="companyInput"
             @keyup.enter="search"
             class="search-input"
@@ -46,7 +47,7 @@
             icon="fa-solid fa-calendar"
           />
           <input
-            placeholder="Date"
+            placeholder="Last updated year"
             v-model="dateInput"
             @keyup.enter="search"
             class="search-input"
@@ -60,7 +61,31 @@
         </li>
       </ul>
     </div>
-    <med-table v-if="showTable"></med-table>
+    <div v-if="loading" class="heart-rate">
+      <svg
+        version="1.0"
+        xmlns="http://www.w3.org/2000/svg"
+        xmlns:xlink="http://www.w3.org/1999/xlink"
+        x="0px"
+        y="0px"
+        width="150px"
+        height="73px"
+        viewBox="0 0 150 73"
+        enable-background="new 0 0 150 73"
+        xml:space="preserve"
+      >
+        <polyline
+          fill="none"
+          stroke="green"
+          stroke-width="3"
+          stroke-miterlimit="10"
+          points="0,45.486 38.514,45.486 44.595,33.324 50.676,45.486 57.771,45.486 62.838,55.622 71.959,9 80.067,63.729 84.122,45.486 97.297,45.486 103.379,40.419 110.473,45.486 150,45.486"
+        />
+      </svg>
+      <div class="fade-in"></div>
+      <div class="fade-out"></div>
+    </div>
+    <med-table :error="error" :result="drugs" v-if="showTable"></med-table>
   </div>
 </template>
 
@@ -79,8 +104,12 @@ export default {
       companyInput: undefined,
       dateInput: undefined,
       showTable: false,
+      drugs: [],
+      error: undefined,
+      loading: false,
     };
   },
+  created() {},
   computed: {
     inputStyleName() {
       if (this.nameInput && this.nameInput.length > 0) {
@@ -121,9 +150,94 @@ export default {
   },
   methods: {
     search() {
-      if (this.companyInput && this.companyInput.length > 0)
-        this.showTable = true;
-      else this.showTable = false;
+      this.error = undefined;
+      this.showTable = false;
+      this.loading = true;
+      if (this.nameInput && this.nameInput.length > 0) {
+        this.$http
+          .get(
+            'https://api.fda.gov/drug/label.json?limit=100&search=openfda.brand_name:"' +
+              this.nameInput.toUpperCase() +
+              '"'
+          )
+          .then(
+            (response) => {
+              this.drugs = response.body.results;
+              if (this.companyInput && this.companyInput.length > 0) {
+                this.drugs = this.drugs.filter(
+                  (drug) =>
+                    drug.openfda.manufacturer_name.filter(
+                      (manu) =>
+                        manu
+                          .toLowerCase()
+                          .indexOf(this.companyInput.toLowerCase()) >= 0
+                    ).length > 0
+                );
+              }
+
+              if (this.dateInput && this.dateInput.length > 0) {
+                this.drugs = this.drugs.filter(
+                  (drug) =>
+                    drug.effective_time.substring(0, 4) == this.dateInput
+                );
+              }
+              this.showTable = true;
+              this.loading = false;
+            },
+            (response) => {
+              this.error = response.body.error.message;
+              this.showTable = true;
+              this.loading = false;
+            }
+          );
+      } else if (this.companyInput && this.companyInput.length > 0) {
+        this.$http
+          .get(
+            'https://api.fda.gov/drug/label.json?limit=100&search=openfda.manufacturer_name:"' +
+              this.companyInput.toUpperCase() +
+              '"'
+          )
+          .then(
+            (response) => {
+              this.drugs = response.body.results;
+              if (this.dateInput && this.dateInput.length > 0) {
+                this.drugs = this.drugs.filter(
+                  (drug) =>
+                    drug.effective_time.substring(0, 4) == this.dateInput
+                );
+              }
+              this.showTable = true;
+              this.loading = false;
+            },
+            (response) => {
+              this.error = response.body.error.message;
+              this.showTable = true;
+              this.loading = false;
+            }
+          );
+      } else if (this.dateInput && this.dateInput.length > 0) {
+        this.$http
+          .get(
+            'https://api.fda.gov/drug/label.json?limit=100&search=effective_time:"' +
+              this.dateInput.toUpperCase() +
+              '"'
+          )
+          .then(
+            (response) => {
+              this.drugs = response.body.results;
+              this.showTable = true;
+              this.loading = false;
+            },
+            (response) => {
+              this.error = response.body.error.message;
+              this.showTable = true;
+              this.loading = false;
+            }
+          );
+      } else {
+        this.showTable = false;
+        this.loading = false;
+      }
     },
   },
 };
@@ -151,6 +265,11 @@ export default {
   outline: none;
 }
 
+.logo-wrapper {
+  display: flex;
+  justify-content: center;
+}
+
 .list-group-flush > .list-group-item {
   border-width: 0 0 1px;
   border-bottom: none;
@@ -166,6 +285,10 @@ export default {
   padding-top: 10px;
 }
 
+img.logo {
+  height: 200px;
+}
+
 .med-btn {
   width: 100%;
   background-color: #0dcaae;
@@ -178,5 +301,96 @@ export default {
 .search-card {
   width: 80%;
   margin: auto;
+}
+
+input.search-input:focus {
+  border-bottom: 1px solid #0dcaae;
+}
+
+.heart-rate {
+  max-width: 180px;
+  height: 143px;
+  position: relative;
+  margin: 0px auto;
+  top: 30px;
+  overflow: hidden;
+}
+
+.fade-in {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: white;
+  top: 0;
+  right: 0;
+  animation: heartRateIn 4.5s linear infinite;
+
+  /* Gia na katalavw ti ginetai des auto
+    border:1px solid red;
+    */
+}
+
+.fade-out {
+  position: absolute;
+  width: 120%;
+  height: 100%;
+  top: 0;
+  left: -120%;
+  animation: heartRateOut 4.5s linear infinite;
+  background: rgba(255, 255, 255, 1);
+  background: -moz-linear-gradient(
+    left,
+    rgba(255, 255, 255, 1) 0%,
+    rgba(255, 255, 255, 1) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background: -webkit-linear-gradient(
+    left,
+    rgba(255, 255, 255, 1) 0%,
+    rgba(255, 255, 255, 1) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background: -o-linear-gradient(
+    left,
+    rgba(255, 255, 255, 1) 0%,
+    rgba(255, 255, 255, 1) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background: -ms-linear-gradient(
+    left,
+    rgba(255, 255, 255, 1) 0%,
+    rgba(255, 255, 255, 1) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 1) 0%,
+    rgba(255, 255, 255, 1) 80%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}
+
+@keyframes heartRateIn {
+  0% {
+    width: 100%;
+  }
+  50% {
+    width: 0%;
+  }
+  100% {
+    width: 0;
+  }
+}
+
+@keyframes heartRateOut {
+  0% {
+    left: -120%;
+  }
+  30% {
+    left: -120%;
+  }
+  100% {
+    left: 0;
+  }
 }
 </style>
