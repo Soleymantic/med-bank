@@ -90,9 +90,21 @@ export default {
       drugs: [],
       error: undefined,
       loading: false,
+      pharmacies: []
     };
   },
-  created() {},
+  created() {
+    let self = this;
+    fetch("https://data.wien.gv.at/daten/geo?service=WFS&request=GetFeature&version=1.1.0&typeName=ogdwien:APOTHEKEOGD&srsName=EPSG:4326&outputFormat=json")
+        .then(response => response.json())
+        .then(data => {
+          console.log('fetching...');
+          let features = data.features;
+          features.forEach(ph => {
+            self.pharmacies.push(ph.properties);
+          })
+        });
+  },
   computed: {
     inputStyleName() {
       if (this.nameInput && this.nameInput.length > 0) {

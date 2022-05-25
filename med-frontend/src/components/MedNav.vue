@@ -21,8 +21,8 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
         <div class="navbar-nav">
-          <a class="nav-link active" aria-current="page" href="#">MedBank</a>
-          <a class="nav-link" href="#">Pharmacy</a>
+          <router-link class="nav-link active" aria-current="page" to="/">MedBank</router-link>
+          <router-link class="nav-link" to="/pharmacy">Pharmacy</router-link>
         </div>
       </div>
     </div>
